@@ -38,6 +38,13 @@ def checkout_view(request):
                     quantity=qty,
                     price=product.price
                 )
+
+            # уведомляем в Telegram о новом заказе
+            from bot.utils import send_new_order_notification
+            # формируем base_url (http://127.0.0.1:8000 без конечного '/')
+            base_url = request.build_absolute_uri('/').rstrip('/')
+            send_new_order_notification(order, base_url)
+
             # Очищаем корзину
             request.session['cart'] = {}
             return redirect('orders:history')
