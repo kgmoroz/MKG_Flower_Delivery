@@ -18,11 +18,10 @@ def send_order_status_update(order):
 def send_new_order_notification(order, base_url: str):
     """
     Отправляет сообщение о новом заказе в Telegram.
-    Если у первого товара есть изображение, шлёт его как фото с подписью.
+    Если у первого товара есть изображение, шлёт его как фото, читая файл локально.
     """
     bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
 
-    # Готовим текст
     text = (
         f"🆕 Новый заказ #{order.id}\n"
         f"Пользователь: {order.user.username}\n"
@@ -31,20 +30,23 @@ def send_new_order_notification(order, base_url: str):
         f"Адрес: {order.delivery_address}"
     )
 
-    # Попытаемся найти фото первого букета
     first_item = order.items.first()
-    if first_item and first_item.product.image:
-        # Формируем абсолютный URL к изображению
-        image_url = urljoin(base_url, first_item.product.image.url)
-        # Отправляем фото с подписью
-        asyncio.run(bot.send_photo(
-            chat_id=settings.TELEGRAM_CHAT_ID,
-            photo=image_url,
-            caption=text
-        ))
-    else:
-        # Если нет фото — обычное текстовое сообщение
-        asyncio.run(bot.send_message(
-            chat_id=settings.TELEGRAM_CHAT_ID,
-            text=text
-        ))
+    img_field = getattr(first_item.product, 'image', None) if first_item else None
+
+    # Если есть локальное изображение и файл существует
+    if img_field and img_field.name:
+        img_path = img_field.path  # абсолютный путь к файлу
+        if os.path.exists(img_path):
+            with open(img_path, 'rb') as photo:
+                asyncio.run(bot.send_photo(
+                    chat_id=settings.TELEGRAM_CHAT_ID,
+                    photo=photo,
+                    caption=text
+                ))
+            return
+
+    # fallback: текстовое сообщение
+    asyncio.run(bot.send_message(
+        chat_id=settings.TELEGRAM_CHAT_ID,
+        text=text
+    ))
