@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<h1>Оформление заказа</h1>
+
+<h2>Корзина</h2>
+{% if cart_items %}
+  <ul>
+  {% for item in cart_items %}
+    <li>
+      {{ item.product.name }} — {{ item.quantity }} × {{ item.product.price }} = {{ item.total }} ₽
+    </li>
+  {% endfor %}
+  </ul>
+  <p><strong>Итого:</strong> {{ total_sum }} ₽</p>
+{% else %}
+  <p>Корзина пуста.</p>
+{% endif %}
+
+<h2>Данные доставки</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Подтвердить заказ</button>
+</form>
+{% endblock %}
