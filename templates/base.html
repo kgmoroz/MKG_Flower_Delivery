@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>FlowerDelivery</title>
+</head>
+<body>
+  <nav>
+    <a href="{% url 'catalog:product_list' %}">Каталог</a> |
+    <a href="{% url 'catalog:cart' %}">Корзина</a>
+  </nav>
+  <hr>
+  {% block content %}{% endblock %}
+</body>
+</html>

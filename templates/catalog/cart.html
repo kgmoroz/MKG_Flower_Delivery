@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Корзина</h1>
+{% if cart_items %}
+  <ul>
+  {% for item in cart_items %}
+    <li>
+      {{ item.product.name }} — {{ item.quantity }} × {{ item.product.price }} = {{ item.total }} ₽
+      <a href="{% url 'catalog:remove_from_cart' item.product.id %}">❌</a>
+    </li>
+  {% endfor %}
+  </ul>
+  <p><strong>Итого:</strong> {{ total_sum }} ₽</p>
+{% else %}
+  <p>Корзина пуста.</p>
+{% endif %}
+<a href="{% url 'catalog:product_list' %}">Вернуться к каталогу</a>
+{% endblock %}
