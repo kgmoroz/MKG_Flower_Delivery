@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>История заказов</h1>
+
+{% if orders %}
+  <ul>
+  {% for order in orders %}
+    <li>
+      <strong>Заказ #{{ order.id }}</strong>:
+      {{ order.get_status_display }} —
+      {{ order.created_at|date:"d.m.Y H:i" }}
+      [<a href="{% url 'orders:repeat' order.id %}">Повторить</a>]
+    </li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <p>У вас ещё нет оформленных заказов.</p>
+{% endif %}
+<p><a href="{% url 'catalog:product_list' %}">Вернуться в каталог</a></p>
+{% endblock %}
