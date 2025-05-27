@@ -10,20 +10,30 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 import environ
 
-env = environ.Env()
-environ.Env.read_env()
-
-# Токен бота и ID чата для уведомлений
-TELEGRAM_BOT_TOKEN = env('TELEGRAM_BOT_TOKEN')
-TELEGRAM_CHAT_ID = env('TELEGRAM_CHAT_ID')  # например, ID приватного чата или группы
-
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# 1) Путь до корня проекта
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# 2) Инициализируем env и читаем файл
+env = environ.Env(
+    # даём типы и дефолты заранее, чтобы не падало, если переменная не задана
+    TELEGRAM_BOT_TOKEN=(str, ''),
+    TELEGRAM_CHAT_ID=(int, 0),
+)
+# Здесь явно указываем, откуда читать .env
+env_file = BASE_DIR / '.env'
+if env_file.exists():
+    env.read_env(env_file)
+else:
+    # чтобы не забыть создать .env
+    raise RuntimeError(f".env file not found at {env_file}")
+
+# 3) Получаем переменные (сработают дефолты из инициализации выше)
+TELEGRAM_BOT_TOKEN = env('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHAT_ID   = env('TELEGRAM_CHAT_ID')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
