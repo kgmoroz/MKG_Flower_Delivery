@@ -47,7 +47,11 @@ def checkout_view(request):
     # Для отображения корзины на странице оформления
     products = Product.objects.filter(id__in=cart.keys())
     cart_items = [
-        {'product': p, 'quantity': cart[str(p.id)], 'total': p.price * cart[str(p.id)])}
+        {
+            'product': p,
+            'quantity': cart[str(p.id)],
+            'total': p.price * cart[str(p.id)]
+        }
         for p in products
     ]
     total_sum = sum(item['total'] for item in cart_items)
