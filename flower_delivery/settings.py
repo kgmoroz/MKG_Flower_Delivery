@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 import environ
+from django.urls import reverse_lazy
 
 # 1) Путь до корня проекта
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -60,6 +61,8 @@ INSTALLED_APPS = [
     'catalog',
     'orders',
     'bot',
+    'crispy_forms',
+    'crispy_bootstrap5',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -128,7 +131,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 
 TIME_ZONE = 'UTC'
 
@@ -150,3 +153,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # media
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+# куда вести после успешного входа
+LOGIN_REDIRECT_URL = reverse_lazy('catalog:product_list')
+# куда вести после выхода (страница logged_out уже есть)
+LOGOUT_REDIRECT_URL = reverse_lazy('catalog:product_list')

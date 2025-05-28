@@ -18,11 +18,34 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth.views import LogoutView
 
+
+# --- 1. View, разрешающая GET-выход -----------------------------
+class LogoutGetView(LogoutView):
+    http_method_names = ["get", "post", "head", "options"]
+    # куда перенаправлять после выхода
+    next_page = "catalog:product_list"
+
+
+# --- 2. Маршруты -------------------------------------------------
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('catalog.urls', namespace='catalog')),
-    path('orders/', include('orders.urls', namespace='orders')),
+    path("admin/", admin.site.urls),
+
+    # Публичные разделы
+    path("", include("catalog.urls", namespace="catalog")),
+    path("orders/", include("orders.urls", namespace="orders")),
+
+    # Выход по GET (должен быть ДО подключения auth.urls)
+    path("accounts/logout/", LogoutGetView.as_view(), name="logout"),
+
+    # Стандартные auth-URL-ы: login, logout (POST), password_reset …
+    path("accounts/", include("django.contrib.auth.urls")),
+
+    # Регистрация (signup)
+    path("accounts/", include("users.urls", namespace="users")),
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# --- 3. Медиафайлы в режиме разработки ---------------------------
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
