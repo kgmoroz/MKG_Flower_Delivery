@@ -2,12 +2,29 @@ from django.views.generic import ListView, DetailView
 from django.shortcuts import redirect, render, get_object_or_404
 from .models import Product
 from .cart_utils import get_cart, save_cart
+from django.db.models import F
 
 
 class ProductListView(ListView):
     model = Product
     template_name = 'catalog/product_list.html'
     context_object_name = 'products'
+    paginate_by = 12    # 12 товаров на страницу
+
+    def get_ordering(self):
+        """Смотрим ?sort=price_asc / price_desc / name"""
+        sort = self.request.GET.get('sort', 'name')
+        mapping = {
+            'price_asc':  'price',
+            'price_desc': '-price',
+            'name':       'name',
+        }
+        return mapping.get(sort, 'name')
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['current_sort'] = self.request.GET.get('sort', 'name')
+        return ctx
 
 
 class ProductDetailView(DetailView):
