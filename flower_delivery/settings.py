@@ -165,3 +165,7 @@ LOGOUT_REDIRECT_URL = reverse_lazy('catalog:product_list')
 TEMPLATES[0]['OPTIONS']['context_processors'] += [
     'catalog.context_processors.cart_stats',
 ]
+
+# development only — письма пишутся в консоль
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@flower-delivery.local'

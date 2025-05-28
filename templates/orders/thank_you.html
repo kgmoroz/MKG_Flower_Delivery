@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Спасибо! Ваш заказ №{{ order.id }} принят.</h2>
+  <p>Доставка: {{ order.delivery_date }} {{ order.delivery_time }}</p>
+  <p>Адрес: {{ order.delivery_address }}</p>
+
+  <a class="btn btn-primary" href="{% url 'orders:history' %}">
+    Мои заказы
+  </a>
+  <a class="btn btn-secondary ms-2" href="{% url 'catalog:product_list' %}">
+    Каталог
+  </a>
+</div>
+{% endblock %}

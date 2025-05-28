@@ -2,15 +2,18 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django import forms
 from django.utils import timezone
+from .email_utils import send_order_confirmation
 
 from catalog.models import Product
 from .models import Order, OrderItem
+
 
 # Форма оформления заказа
 class CheckoutForm(forms.Form):
     delivery_date = forms.DateField(label='Дата доставки', widget=forms.DateInput(attrs={'type': 'date'}))
     delivery_time = forms.TimeField(label='Время доставки', widget=forms.TimeInput(attrs={'type': 'time'}))
     delivery_address = forms.CharField(label='Адрес доставки', max_length=255)
+
 
 @login_required
 def checkout_view(request):
@@ -47,7 +50,12 @@ def checkout_view(request):
 
             # Очищаем корзину
             request.session['cart'] = {}
-            return redirect('orders:history')
+
+            # e-mail клиенту
+            send_order_confirmation(order)
+            # redirect на спасибо-страницу
+            return redirect('orders:thank_you', order_id=order.id)
+
     else:
         form = CheckoutForm()
 
@@ -69,10 +77,12 @@ def checkout_view(request):
         'total_sum': total_sum,
     })
 
+
 @login_required
 def order_history(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'orders/history.html', {'orders': orders})
+
 
 @login_required
 def repeat_order(request, order_id):
@@ -81,3 +91,9 @@ def repeat_order(request, order_id):
     new_cart = {str(item.product.id): item.quantity for item in original.items.all()}
     request.session['cart'] = new_cart
     return redirect('orders:checkout')
+
+
+@login_required
+def thank_you(request, order_id):
+    order = get_object_or_404(Order, pk=order_id, user=request.user)
+    return render(request, 'orders/thank_you.html', {'order': order})
