@@ -1,20 +1,35 @@
 {% extends 'base.html' %}
+{% load order_extras %}
 {% block content %}
-<h1>История заказов</h1>
+<div class="container mt-4">
+  <h1>Мои заказы</h1>
 
-{% if orders %}
-  <ul>
-  {% for order in orders %}
-    <li>
-      <strong>Заказ #{{ order.id }}</strong>:
-      {{ order.get_status_display }} —
-      {{ order.created_at|date:"d.m.Y H:i" }}
-      [<a href="{% url 'orders:repeat' order.id %}">Повторить</a>]
-    </li>
-  {% endfor %}
-  </ul>
-{% else %}
-  <p>У вас ещё нет оформленных заказов.</p>
-{% endif %}
-<p><a href="{% url 'catalog:product_list' %}">Вернуться в каталог</a></p>
+  {% if orders %}
+    <div class="list-group">
+    {% for order in orders %}
+      <div class="list-group-item mb-3">
+        <div class="d-flex justify-content-between">
+          <strong>Заказ #{{ order.id }}</strong>
+          <small>{{ order.created_at|date:"d.m.Y H:i" }}</small>
+        </div>
+
+        <!-- 🌈 полоса статуса -->
+        <div class="status-bar {% status_css order %} mt-2">
+          <div class="status-step">Принят</div>
+          <div class="status-step">В&nbsp;работе</div>
+          <div class="status-step">В&nbsp;доставке</div>
+          <div class="status-step">Выполнен</div>
+        </div>
+
+        <a href="{% url 'orders:repeat' order.id %}"
+           class="btn btn-outline-primary btn-sm mt-2">
+          Повторить
+        </a>
+      </div>
+    {% endfor %}
+    </div>
+  {% else %}
+    <p>У вас ещё нет оформленных заказов.</p>
+  {% endif %}
+</div>
 {% endblock %}

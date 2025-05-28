@@ -1,0 +1,37 @@
+.status-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.status-step {
+  flex: 1 1 0;
+  text-align: center;
+  position: relative;
+  padding-top: 22px;        /* место под кружок */
+}
+
+.status-step::before {
+  content: '';
+  position: absolute;
+  left: 50%; top: 0;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: var(--step-color, #ccc);
+}
+
+.status-bar.completed   .status-step:nth-child(-n+4)::before { --step-color:#28a745; }
+.status-bar.delivering  .status-step:nth-child(-n+3)::before { --step-color:#fd7e14; }
+.status-bar.processing  .status-step:nth-child(-n+2)::before { --step-color:#ffc107; }
+.status-bar.pending     .status-step:nth-child(-n+1)::before { --step-color:#0d6efd; }
+
+.status-bar .status-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 5px; left: calc(50% + 6px);
+  width: calc(100% - 12px);
+  height: 2px;
+  background: #dee2e6;
+}
