@@ -1,19 +1,44 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Корзина</h1>
-{% if cart_items %}
-  <ul>
-  {% for item in cart_items %}
-    <li>
-      {{ item.product.name }} — {{ item.quantity }} × {{ item.product.price }} = {{ item.total }} ₽
-      <a href="{% url 'catalog:remove_from_cart' item.product.id %}">❌</a>
-    </li>
-  {% endfor %}
-  </ul>
-  <p><strong>Итого:</strong> {{ total_sum }} ₽</p>
-  <p><a href="{% url 'orders:checkout' %}">Оформить заказ ➡️</a></p>
-{% else %}
-  <p>Корзина пуста.</p>
-{% endif %}
-<a href="{% url 'catalog:product_list' %}">Вернуться к каталогу</a>
+<div class="container mt-4">
+  <h1>Корзина</h1>
+
+  {% if cart_items %}
+  <table class="table align-middle">
+    <thead><tr>
+      <th>Букет</th><th style="width:160px;">Кол-во</th>
+      <th>Сумма</th><th></th></tr></thead>
+    <tbody>
+      {% for item in cart_items %}
+      <tr>
+        <td>{{ item.product.name }}</td>
+        <td>
+          <a class="btn btn-sm btn-outline-secondary"
+             href="{% url 'catalog:update_cart' item.product.id 'dec' %}">–</a>
+          <span class="mx-2">{{ item.quantity }}</span>
+          <a class="btn btn-sm btn-outline-secondary"
+             href="{% url 'catalog:update_cart' item.product.id 'inc' %}">+</a>
+        </td>
+        <td>{{ item.total }} ₽</td>
+        <td>
+          <a class="btn btn-sm btn-outline-danger"
+             href="{% url 'catalog:update_cart' item.product.id 'remove' %}">×</a>
+        </td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <td colspan="2" class="text-end"><strong>Итого:</strong></td>
+        <td><strong>{{ total_sum }} ₽</strong></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <a href="{% url 'orders:checkout' %}" class="btn btn-success">
+    Оформить заказ
+  </a>
+  {% else %}
+    <p>Корзина пуста.</p>
+  {% endif %}
+</div>
 {% endblock %}
