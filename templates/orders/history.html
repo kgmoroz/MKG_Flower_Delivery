@@ -5,29 +5,70 @@
   <h1>Мои заказы</h1>
 
   {% if orders %}
-    <div class="list-group">
+  <div class="accordion" id="ordersAccordion">
     {% for order in orders %}
-      <div class="list-group-item mb-3">
-        <div class="d-flex justify-content-between">
-          <strong>Заказ #{{ order.id }}</strong>
-          <small>{{ order.created_at|date:"d.m.Y H:i" }}</small>
-        </div>
+    <div class="accordion-item mb-2">
+      <!-- Заголовок -->
+      <h2 class="accordion-header" id="heading{{ order.id }}">
+        <button class="accordion-button collapsed d-flex justify-content-between"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapse{{ order.id }}"
+                aria-expanded="false"
+                aria-controls="collapse{{ order.id }}">
+          <div>
+            <strong>Заказ #{{ order.id }}</strong>
+            <span class="text-muted ms-2">{{ order.created_at|date:"d.m.Y H:i" }}</span>
+          </div>
+        </button>
+      </h2>
 
-        <!-- 🌈 полоса статуса -->
-        <div class="status-bar {% status_css order %} mt-2">
-          <div class="status-step">Принят</div>
-          <div class="status-step">В&nbsp;работе</div>
-          <div class="status-step">В&nbsp;доставке</div>
-          <div class="status-step">Выполнен</div>
-        </div>
+      <!-- Тело -->
+      <div id="collapse{{ order.id }}"
+           class="accordion-collapse collapse"
+           aria-labelledby="heading{{ order.id }}"
+           data-bs-parent="#ordersAccordion">
+        <div class="accordion-body">
 
-        <a href="{% url 'orders:repeat' order.id %}"
-           class="btn btn-outline-primary btn-sm mt-2">
-          Повторить
-        </a>
+          <!-- Полоса статуса -->
+          <div class="status-bar {{ order|status_css }} mb-3">
+            <div class="status-step">Принят</div>
+            <div class="status-step">В работе</div>
+            <div class="status-step">В доставке</div>
+            <div class="status-step">Выполнен</div>
+          </div>
+
+          <!-- Таблица позиций -->
+          <table class="table table-sm">
+            <thead>
+              <tr><th>Букет</th><th style="width:90px;">Кол-во</th><th>Цена</th></tr>
+            </thead>
+            <tbody>
+            {% for item in order.items.all %}
+              <tr>
+                <td>{{ item.product.name }}</td>
+                <td class="text-center">{{ item.quantity }}</td>
+                <td>{{ item.price }} ₽</td>
+              </tr>
+            {% endfor %}
+              <tr>
+                <td colspan="2" class="text-end"><strong>Итого:</strong></td>
+                <td><strong>
+                  {{ order.items.all|sum_total }} ₽
+                </strong></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <a href="{% url 'orders:repeat' order.id %}"
+             class="btn btn-outline-primary btn-sm">
+            Повторить
+          </a>
+        </div>
       </div>
-    {% endfor %}
     </div>
+    {% endfor %}
+  </div>
   {% else %}
     <p>У вас ещё нет оформленных заказов.</p>
   {% endif %}
