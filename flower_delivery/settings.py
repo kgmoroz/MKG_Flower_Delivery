@@ -161,3 +161,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 LOGIN_REDIRECT_URL = reverse_lazy('catalog:product_list')
 # куда вести после выхода (страница logged_out уже есть)
 LOGOUT_REDIRECT_URL = reverse_lazy('catalog:product_list')
+
+TEMPLATES[0]['OPTIONS']['context_processors'] += [
+    'catalog.context_processors.cart_stats',
+]
