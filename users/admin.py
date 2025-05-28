@@ -1,13 +1,15 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
-from .models import CustomUser
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth import get_user_model
+from .forms import CustomUserCreationForm
+CustomUser = get_user_model()
+
 
 @admin.register(CustomUser)
-class CustomUserAdmin(DefaultUserAdmin):
-    # здесь можно дополнительно настроить отображаемые столбцы
-    fieldsets = DefaultUserAdmin.fieldsets + (
-        ('Дополнительные поля', {
-            'fields': ('phone', 'address'),
-        }),
+class CustomUserAdmin(UserAdmin):
+    add_form = CustomUserCreationForm
+    model = CustomUser
+    list_display = ('username', 'email', 'phone', 'is_staff')
+    fieldsets = UserAdmin.fieldsets + (
+        ('Дополнительно', {'fields': ('phone', 'address')}),
     )
-    list_display = ('username', 'email', 'first_name', 'last_name', 'phone', 'address', 'is_staff')
