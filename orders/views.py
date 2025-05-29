@@ -94,7 +94,7 @@ def repeat_order(request, order_id):
     # Восстанавливаем корзину из старого заказа
     new_cart = {str(item.product.id): item.quantity for item in original.items.all()}
     request.session['cart'] = new_cart
-    return redirect('orders:checkout')
+    return redirect('catalog:cart')
 
 
 @login_required
