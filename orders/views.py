@@ -57,7 +57,11 @@ def checkout_view(request):
             return redirect('orders:thank_you', order_id=order.id)
 
     else:
-        form = CheckoutForm()
+        initial = {}
+        if request.user.is_authenticated and request.user.address:
+            initial['delivery_address'] = request.user.address  # авто-подстановка
+
+        form = CheckoutForm(initial=initial)
 
     # Для отображения корзины на странице оформления
     products = Product.objects.filter(id__in=cart.keys())
