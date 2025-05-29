@@ -1,11 +1,15 @@
 import asyncio
 import os
 from django.conf import settings
-from telegram import Bot
+from telegram import Bot, InputMediaPhoto
 from urllib.parse import urljoin
+from django.conf import settings
+from django.urls import reverse
+from telegram.error import BadRequest
+
+bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
 
 def send_order_status_update(order):
-    bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
     text = (
         f"🔔 Обновлён статус заказа #{order.id}:\n"
         f"{order.get_status_display()}\n"
@@ -17,37 +21,62 @@ def send_order_status_update(order):
 
 
 def send_new_order_notification(order, base_url: str):
-    """
-    Отправляет сообщение о новом заказе в Telegram.
-    Если у первого товара есть изображение, шлёт его как фото, читая файл локально.
-    """
-    bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
+    """Собираем данные синхронно и запускаем async-отправку."""
+    chat_id = settings.TELEGRAM_CHAT_ID
 
-    text = (
-        f"🆕 Новый заказ #{order.id}\n"
-        f"Пользователь: {order.user.username}\n"
-        f"Сумма: {sum(item.quantity * item.price for item in order.items.all())} ₽\n"
-        f"Дата доставки: {order.delivery_date} {order.delivery_time}\n"
-        f"Адрес: {order.delivery_address}"
-    )
+    # Синхронно вытаскиваем все OrderItem
+    items = list(order.items.select_related('product').all())
 
-    first_item = order.items.first()
-    img_field = getattr(first_item.product, 'image', None) if first_item else None
+    # Собираем media_data
+    media_data = []
+    for item in items:
+        prod = item.product
+        if prod.image and prod.image.url:
+            media_data.append({
+                'url': base_url.rstrip('/') + prod.image.url,
+                'caption': f"{prod.name} × {item.quantity} шт."
+            })
 
-    # Если есть локальное изображение и файл существует
-    if img_field and img_field.name:
-        img_path = img_field.path  # абсолютный путь к файлу
-        if os.path.exists(img_path):
-            with open(img_path, 'rb') as photo:
-                asyncio.run(bot.send_photo(
-                    chat_id=settings.TELEGRAM_CHAT_ID,
-                    photo=photo,
-                    caption=text
-                ))
-            return
+    # Формируем текст
+    lines = [
+        f"🆕 Новый заказ #{order.id}",
+        f"Пользователь: {order.user.username}",
+        "",
+        "📦 Состав заказа:"
+    ]
+    total = 0
+    for item in items:
+        lines.append(f"- {item.product.name}: {item.quantity} × {item.price} ₽")
+        total += item.quantity * item.price
+    lines += [
+        "",
+        f"💰 Всего: {total:.2f} ₽",
+        f"📅 Дата доставки: {order.delivery_date} {order.delivery_time}",
+        f"🏠 Адрес: {order.delivery_address}",
+    ]
+    text = "\n".join(lines)
 
-    # fallback: текстовое сообщение
-    asyncio.run(bot.send_message(
-        chat_id=settings.TELEGRAM_CHAT_ID,
-        text=text
-    ))
+    # Запускаем асинхронную отправку
+    asyncio.run(_async_send(chat_id, media_data, text))
+
+
+async def _async_send(chat_id: int, media_data: list, text: str):
+    # Попытка отправить как альбом
+    if media_data:
+        group = [InputMediaPhoto(media=d['url'], caption=d['caption'])
+                 for d in media_data]
+        try:
+            await bot.send_media_group(chat_id=chat_id, media=group)
+        except BadRequest:
+            # fallback: шлём по одной картинке
+            for d in media_data:
+                try:
+                    await bot.send_photo(chat_id=chat_id,
+                                         photo=d['url'],
+                                         caption=d['caption'])
+                except BadRequest:
+                    # пропускаем, если и это не прокатывает
+                    continue
+
+    # Отправляем итоговый текст
+    await bot.send_message(chat_id=chat_id, text=text)
