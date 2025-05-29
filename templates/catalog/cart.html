@@ -39,12 +39,29 @@
       </tr>
     </tbody>
   </table>
-  <a href="{% url 'catalog:product_list' %}" class="btn btn-secondary me-2">
-    Вернуться к покупкам
-  </a>
-  <a href="{% url 'orders:checkout' %}" class="btn btn-success">
-    Оформить заказ
-  </a>
+  <!-- Кнопки навигации / действия -->
+  <div class="d-flex mt-4 w-100">
+
+    <!-- слева -->
+    <a href="{% url 'catalog:product_list' %}"
+       class="btn btn-outline-secondary me-auto">
+      Вернуться к покупкам
+    </a>
+
+    <!-- по центру -->
+    <a href="{% url 'orders:checkout' %}"
+       class="btn btn-success mx-auto">
+      Оформить заказ
+    </a>
+
+    <!-- справа -->
+    <a href="{% url 'catalog:clear_cart' %}"
+       class="btn btn-outline-danger ms-auto"
+       onclick="return confirm('Очистить корзину?');">
+      Очистить корзину
+    </a>
+
+  </div>
   {% else %}
     <p>Корзина пуста.</p>
   {% endif %}

@@ -1,9 +1,9 @@
 from django.views.generic import ListView, DetailView
 from django.shortcuts import redirect, render, get_object_or_404
 from .models import Product
-from .cart_utils import get_cart, save_cart
 from django.db.models import F
 from django.views.decorators.http import require_POST
+from catalog.cart_utils import save_cart, get_cart
 
 
 class ProductListView(ListView):
@@ -81,4 +81,10 @@ def update_cart(request, product_id, action):
         cart.pop(pid, None)
 
     save_cart(request, cart)
+    return redirect('catalog:cart')
+
+
+def clear_cart(request):
+    """Полностью очищает корзину."""
+    save_cart(request, {})          # либо request.session.pop('cart', None)
     return redirect('catalog:cart')

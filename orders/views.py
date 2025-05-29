@@ -3,7 +3,6 @@ from django.contrib.auth.decorators import login_required
 from django import forms
 from django.utils import timezone
 from .email_utils import send_order_confirmation
-
 from catalog.models import Product
 from .models import Order, OrderItem
 
