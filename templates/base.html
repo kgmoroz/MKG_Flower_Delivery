@@ -1,6 +1,6 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
-{% load static %}
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,35 +8,34 @@
 
   <!-- Bootstrap CSS -->
   <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-    integrity="sha384-GOa8L4vTmyaKOA1NVuMcZV8IO4D4ew3Efr2E1VlzDq+W8sELpAo0P5PLf4KJIpk0"
-    crossorigin="anonymous">
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet">
 
-  <!-- полоска статуса заказа -->
-  <link rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <!-- наш CSS для статуса заказов -->
   <link rel="stylesheet" href="{% static 'css/order_status.css' %}">
 </head>
 
 <body>
-  <!-- ======= NAVBAR ======= -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <!-- ======= STICKY NAVBAR ======= -->
+  <nav class="navbar sticky-top navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{% url 'catalog:product_list' %}">FlowerDelivery</a>
-
-      <!-- кнопка-гамбургер для мобильных -->
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
-              aria-controls="mainNavbar" aria-expanded="false" aria-label="Переключить навигацию">
+      <a class="navbar-brand" href="{% url 'catalog:product_list' %}">
+        FlowerDelivery
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+              data-bs-target="#mainNavbar" aria-controls="mainNavbar"
+              aria-expanded="false" aria-label="Переключить навигацию">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div class="collapse navbar-collapse" id="mainNavbar">
+        <!-- ЛЕВАЯ ЧАСТЬ МЕНЮ -->
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'catalog:product_list' %}">Каталог</a>
+            <a class="nav-link" href="{% url 'catalog:product_list' %}">
+              Каталог
+            </a>
           </li>
-
           <li class="nav-item">
             <a class="nav-link" href="{% url 'catalog:cart' %}">
               Корзина
@@ -47,24 +46,43 @@
           </li>
           {% if user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'orders:history' %}">Мои заказы</a>
+              <a class="nav-link" href="{% url 'orders:history' %}">
+                Мои заказы
+              </a>
             </li>
             {% if user.is_staff %}
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'orders:manage_orders' %}">
+                <a class="nav-link"
+                   href="{% url 'orders:manage_orders' %}">
                   Управление заказами
                 </a>
               </li>
             {% endif %}
+          {% endif %}
+        </ul>
+
+        <!-- ПРАВАЯ ЧАСТЬ: имя пользователя + вход/выход -->
+        <ul class="navbar-nav mb-2 mb-lg-0">
+          {% if user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+              <!-- просто текст, стилизованный под пункт меню -->
+              <span class="nav-link disabled">
+                {{ user.get_full_name|default:user.username }}
+              </span>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'logout' %}">
+                Выйти
+              </a>
             </li>
           {% else %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'login' %}">Войти</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'users:signup' %}">Регистрация</a>
+              <a class="nav-link" href="{% url 'users:signup' %}">
+                Регистрация
+              </a>
             </li>
           {% endif %}
         </ul>
@@ -72,12 +90,14 @@
     </div>
   </nav>
 
-  <!-- ======= ОСНОВНОЙ КОНТЕНТ ======= -->
-  <main class="py-3">
+  <!-- основной контент, чуть отступ сверху, чтобы шапка не загораживала -->
+  <main class="pt-4">
     {% block content %}{% endblock %}
   </main>
 
-  <!-- Bootstrap JS (bundle) – без SRI -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Bootstrap JS (bundle с Popper) -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
+  </script>
 </body>
 </html>
