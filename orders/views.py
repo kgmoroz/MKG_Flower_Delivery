@@ -5,6 +5,8 @@ from django.utils import timezone
 from .email_utils import send_order_confirmation
 from catalog.models import Product
 from .models import Order, OrderItem
+from django.urls import reverse
+from bot.utils import send_order_status_update
 
 
 # Форма оформления заказа
@@ -100,3 +102,23 @@ def repeat_order(request, order_id):
 def thank_you(request, order_id):
     order = get_object_or_404(Order, pk=order_id, user=request.user)
     return render(request, 'orders/thank_you.html', {'order': order})
+
+
+# --- список заказов ----------------------------------------------
+def manage_orders(request):
+    orders = (
+        Order.objects
+        .select_related("user")
+        .order_by("-created_at")
+    )
+    return render(request, "orders/manage.html", {"orders": orders})
+
+
+# --- смена статуса по кнопке --------------------------------------
+def set_order_status(request, order_id, status):
+    order = get_object_or_404(Order, pk=order_id)
+    if order.status != status:
+        order.status = status
+        order.save()
+        send_order_status_update(order)  # Telegram/бот
+    return redirect(reverse("orders:manage_orders"))
