@@ -41,11 +41,16 @@
           <!-- Таблица позиций -->
           <table class="table table-sm">
             <thead>
-              <tr><th>Букет</th><th style="width:90px;">Кол-во</th><th>Цена</th></tr>
+              <tr><th style="width:100px;"></th><th>Букет</th><th style="width:90px;">Кол-во</th><th>Цена</th></tr>
             </thead>
             <tbody>
             {% for item in order.items.all %}
               <tr>
+                <td>
+                  {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" class="img-thumbnail" style="width:80px;">
+                  {% endif %}
+                </td>
                 <td>{{ item.product.name }}</td>
                 <td class="text-center">{{ item.quantity }}</td>
                 <td>{{ item.price }} ₽</td>

@@ -3,6 +3,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from .models import Product
 from .cart_utils import get_cart, save_cart
 from django.db.models import F
+from django.views.decorators.http import require_POST
 
 
 class ProductListView(ListView):
@@ -44,10 +45,13 @@ def cart_view(request):
     return render(request, 'catalog/cart.html', {'cart_items': cart_items, 'total_sum': total_sum})
 
 
+@require_POST                    # ← только POST
 def add_to_cart(request, product_id):
-    cart = request.session.get('cart', {})
-    cart[str(product_id)] = cart.get(str(product_id), 0) + 1
-    request.session['cart'] = cart
+    cart = get_cart(request)
+    qty  = int(request.POST.get('quantity', 1))
+    pid  = str(product_id)
+    cart[pid] = cart.get(pid, 0) + max(qty, 1)   # не дать <=0
+    save_cart(request, cart)
     return redirect('catalog:cart')
 
 

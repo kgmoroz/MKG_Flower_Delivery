@@ -6,11 +6,17 @@
   {% if cart_items %}
   <table class="table align-middle">
     <thead><tr>
+      <th style="width:100px;"></th>
       <th>Букет</th><th style="width:160px;">Кол-во</th>
       <th>Сумма</th><th></th></tr></thead>
     <tbody>
       {% for item in cart_items %}
       <tr>
+        <td>
+          {% if item.product.image %}
+            <img src="{{ item.product.image.url }}" class="img-thumbnail" style="width:80px;">
+          {% endif %}
+        </td>
         <td>{{ item.product.name }}</td>
         <td>
           <a class="btn btn-sm btn-outline-secondary"
@@ -33,7 +39,9 @@
       </tr>
     </tbody>
   </table>
-
+  <a href="{% url 'catalog:product_list' %}" class="btn btn-secondary me-2">
+    Вернуться к покупкам
+  </a>
   <a href="{% url 'orders:checkout' %}" class="btn btn-success">
     Оформить заказ
   </a>
