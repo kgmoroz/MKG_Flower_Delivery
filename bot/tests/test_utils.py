@@ -1,65 +1,48 @@
 import pytest
-import datetime
-from telegram import InputMediaPhoto
+from django.conf import settings
 from bot import utils
 
 @pytest.mark.django_db
-def test_send_new_order_notification_text_only(monkeypatch, order, user):
-    """
-    Проверяем, что при отсутствии изображений или в упрощённом режиме
-    бот получает корректный текст и chat_id.
-    """
-    sent = []
+def test_send_new_order_notification(monkeypatch, order, user):
+    calls = []
+    async def fake_send_message(self, chat_id, text, *args, **kwargs):
+        calls.append((chat_id, text))
 
-    # Заглушаем метод send_message и send_media_group
-    async def fake_send_message(chat_id, text):
-        sent.append(('message', chat_id, text))
+    # Патчим метод класса Bot для перехвата send_message
+    monkeypatch.setattr(type(utils.bot), 'send_message', fake_send_message)
+    # Устанавливаем тестовый chat_id
+    monkeypatch.setattr(settings, 'TELEGRAM_CHAT_ID', 123)
 
-    async def fake_send_media_group(chat_id, media):
-        sent.append(('media_group', chat_id, media))
-
-    monkeypatch.setattr(utils, 'bot', utils.bot)           # оставляем бот-экземпляр
-    monkeypatch.setattr(utils.bot, 'send_message', fake_send_message)
-    monkeypatch.setattr(utils.bot, 'send_media_group', fake_send_media_group)
-
-    # Удаляем у всех продуктов изображение, чтобы media_group ветка тоже отработала пустой
-    for item in order.items.all():
-        item.product.image = None
-
-    # Вызываем
+    # Вызываем функцию
     utils.send_new_order_notification(order, base_url='http://testserver')
 
-    # Должен быть ровно один вызов send_message с правильным текстом
-    msgs = [args for kind, *_ , args in sent if kind == 'message']
-    assert msgs, "Bot.send_message не был вызван"
-    text = msgs[0]
-    assert f"Новый заказ #{order.id}" in text
-    assert user.username in text
-    assert "Состав заказа:" in text
-    # Сумма: 2×500 + 1×700 = 1700
-    assert "1700.00" in text or "1700" in text
+    assert len(calls) == 1, "Ожидалось одно сообщение"
+    chat_id, text = calls[0]
+    assert chat_id == 123
+    assert f"🆕 Новый заказ #{order.id}" in text
+    assert f"({order.user.username})" in text
+    assert "📦 Состав заказа:" in text
+    total = sum(i.quantity * i.price for i in order.items.all())
+    assert f"💰 Всего: {total:.2f} ₽" in text
 
 @pytest.mark.django_db
 def test_send_order_status_update(monkeypatch, order, user):
-    """
-    Проверяем, что send_order_status_update шлёт сообщение о новом статусе
-    и форматирует пользователя как Имя Фамилия (username).
-    """
-    sent = []
+    calls = []
+    async def fake_send_message(self, chat_id, text, *args, **kwargs):
+        calls.append((chat_id, text))
 
-    async def fake_send_message(chat_id, text):
-        sent.append((chat_id, text))
+    # Патчим метод класса Bot для send_message
+    monkeypatch.setattr(type(utils.bot), 'send_message', fake_send_message)
+    monkeypatch.setattr(settings, 'TELEGRAM_CHAT_ID', 456)
 
-    monkeypatch.setattr(utils, 'bot', utils.bot)
-    monkeypatch.setattr(utils.bot, 'send_message', fake_send_message)
-
-    # Дадим заказу статус COMPLETED и вызовем
+    # Меняем статус заказа
     order.status = 'COMPLETED'
+    order.save()
     utils.send_order_status_update(order)
 
-    assert sent, "Bot.send_message не был вызван"
-    chat_id, text = sent[0]
-    # Проверяем содержание
+    assert len(calls) == 1, "Ожидался один вызов"
+    chat_id, text = calls[0]
+    assert chat_id == 456
     assert f"🔔 Обновлён статус заказа #{order.id}" in text
-    full_name = order.user.get_full_name() or order.user.username
+    full_name = order.user.get_full_name().strip() or order.user.username
     assert f"{full_name} ({order.user.username})" in text
