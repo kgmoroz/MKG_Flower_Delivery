@@ -13,7 +13,7 @@ from bot.utils import send_order_status_update
 # Рабочие дни: понедельник=0 … пятница=4
 WORK_DAYS = set(range(0, 5))
 WORK_START = 9   # 09:00
-WORK_END = 17  # 18:00 (заказы до 17:59)
+WORK_END = 18  # 18:00 (заказы до 17:59)
 
 
 # Форма оформления заказа
@@ -21,6 +21,22 @@ class CheckoutForm(forms.Form):
     delivery_date = forms.DateField(label='Дата доставки', widget=forms.DateInput(attrs={'type': 'date'}))
     delivery_time = forms.TimeField(label='Время доставки', widget=forms.TimeInput(attrs={'type': 'time'}))
     delivery_address = forms.CharField(label='Адрес доставки', max_length=255)
+
+    def clean(self):
+        cleaned = super().clean()
+        date = cleaned.get('delivery_date')
+        time = cleaned.get('delivery_time')
+        if date and time:
+            # Собираем наивный datetime и текущее наивное время
+            dt = datetime.datetime.combine(date, time)
+            now = timezone.localtime(timezone.now()).replace(tzinfo=None)
+            if dt <= now:
+                # Добавляем ошибку именно в поле delivery_date
+                self.add_error(
+                    'delivery_date',
+                    "Дата и время доставки должны быть в будущем."
+                )
+        return cleaned
 
 
 @login_required
