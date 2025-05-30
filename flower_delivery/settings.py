@@ -169,4 +169,4 @@ TEMPLATES[0]['OPTIONS']['context_processors'] += [
 
 # development only — письма пишутся в консоль
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@flower-delivery.local'
+DEFAULT_FROM_EMAIL = 'no-reply@flowerdelivery.ru'
