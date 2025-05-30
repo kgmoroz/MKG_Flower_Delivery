@@ -1,0 +1,16 @@
+/* static/css/style.css */
+
+/* Светло-серый фон с тонким паттерном (можно убрать background-image, если не нужен) */
+body {
+  background-color: #f8f9fa;              /* нежно-серый цвет */
+  /* фон-паттерн повторяется по всей странице (необязательно) */
+  background-image: url("../img/bg-pattern.png");
+  background-repeat: repeat;
+  background-attachment: fixed;           /* фон «прилипает» при скролле */
+  background-size: 32px;           /* размер паттерна */
+}
+
+/* Опционально: сделать контейнеры полупрозрачными, чтобы фон слегка просвечивал */
+.card, .navbar, footer {
+  background-color: rgba(255,255,255,0.85);
+}
