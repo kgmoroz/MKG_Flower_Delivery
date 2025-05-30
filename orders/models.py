@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from catalog.models import Product
+from django.db.models import Sum, F
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -17,6 +18,16 @@ class Order(models.Model):
     delivery_address = models.CharField("адрес доставки", max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def total_amount(self):
+        """
+        Возвращает общую сумму всех позиций заказа:
+        sum(quantity * price).
+        """
+        aggregate = self.items.aggregate(
+            total=Sum(F('quantity') * F('price'))
+        )
+        return aggregate['total'] or 0
 
     def __str__(self):
         return f"Заказ #{self.id} — {self.user}"
