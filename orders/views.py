@@ -2,11 +2,18 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django import forms
 from django.utils import timezone
+from django.contrib import messages
+import datetime
 from .email_utils import send_order_confirmation
 from catalog.models import Product
 from .models import Order, OrderItem
 from django.urls import reverse
 from bot.utils import send_order_status_update
+
+# Рабочие дни: понедельник=0 … пятница=4
+WORK_DAYS = set(range(0, 5))
+WORK_START = 9   # 09:00
+WORK_END = 17  # 18:00 (заказы до 17:59)
 
 
 # Форма оформления заказа
@@ -22,8 +29,34 @@ def checkout_view(request):
     if not cart:
         return redirect('catalog:cart')
 
+    # Подготовка данных корзины для шаблона
+    products = Product.objects.filter(id__in=cart.keys())
+    cart_items = [
+        {
+            'product': p,
+            'quantity': cart[str(p.id)],
+            'total': p.price * cart[str(p.id)]
+        }
+        for p in products
+    ]
+    total_sum = sum(item['total'] for item in cart_items)
+
     if request.method == 'POST':
         form = CheckoutForm(request.POST)
+
+        # Проверка рабочего времени
+        now = timezone.localtime(timezone.now())
+        if now.weekday() not in WORK_DAYS or not (WORK_START <= now.hour < WORK_END):
+            messages.error(
+                request,
+                'Заказы принимаются только в рабочее время: Пн–Пт с 09:00 до 18:00.'
+            )
+            return render(request, 'orders/checkout.html', {
+                'form': form,
+                'cart_items': cart_items,
+                'total_sum': total_sum,
+            })
+
         if form.is_valid():
             # Создаём заказ
             order = Order.objects.create(
@@ -43,38 +76,25 @@ def checkout_view(request):
                     price=product.price
                 )
 
-            # уведомляем в Telegram о новом заказе
+            # Уведомление Telegram
             from bot.utils import send_new_order_notification
-            # формируем base_url (http://127.0.0.1:8000 без конечного '/')
             base_url = request.build_absolute_uri('/').rstrip('/')
             send_new_order_notification(order, base_url)
 
             # Очищаем корзину
             request.session['cart'] = {}
 
-            # e-mail клиенту
+            # Отправка e-mail клиенту
             send_order_confirmation(order)
-            # redirect на спасибо-страницу
+
             return redirect('orders:thank_you', order_id=order.id)
 
     else:
+        # GET: предварительно подставляем адрес пользователя
         initial = {}
-        if request.user.is_authenticated and request.user.address:
-            initial['delivery_address'] = request.user.address  # авто-подстановка
-
+        if request.user.address:
+            initial['delivery_address'] = request.user.address
         form = CheckoutForm(initial=initial)
-
-    # Для отображения корзины на странице оформления
-    products = Product.objects.filter(id__in=cart.keys())
-    cart_items = [
-        {
-            'product': p,
-            'quantity': cart[str(p.id)],
-            'total': p.price * cart[str(p.id)]
-        }
-        for p in products
-    ]
-    total_sum = sum(item['total'] for item in cart_items)
 
     return render(request, 'orders/checkout.html', {
         'form': form,
