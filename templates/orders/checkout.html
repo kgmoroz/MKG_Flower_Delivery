@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4" style="max-width: 720px;">
+
+  {# — Выводим ошибки из messages (например, внерабочее время) — #}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-danger" role="alert">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h4 class="mb-0">Оформление заказа</h4>
+    </div>
+
+    <div class="card-body">
+
+      {# — Таблица корзины — #}
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th style="width:90px;"></th>
+            <th>Букет</th>
+            <th class="text-center" style="width:90px;">Кол-во</th>
+            <th class="text-end">Цена</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in cart_items %}
+            <tr>
+              <td>
+                {% if item.product.image %}
+                  <img src="{{ item.product.image.url }}"
+                       class="img-thumbnail"
+                       style="width:80px;">
+                {% endif %}
+              </td>
+              <td>{{ item.product.name }}</td>
+              <td class="text-center">{{ item.quantity }}</td>
+              <td class="text-end">{{ item.total }} ₽</td>
+            </tr>
+          {% endfor %}
+          <tr>
+            <td colspan="3" class="text-end"><strong>Итого:</strong></td>
+            <td class="text-end"><strong>{{ total_sum }} ₽</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <hr>
+
+      {# — Форма с датой, временем и адресом — #}
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            {{ form.delivery_date.label_tag }}
+            {{ form.delivery_date }}
+          </div>
+          <div class="col-md-6">
+            {{ form.delivery_time.label_tag }}
+            {{ form.delivery_time }}
+          </div>
+          <div class="col-12">
+            {{ form.delivery_address.label_tag }}
+            {{ form.delivery_address }}
+          </div>
+        </div>
+
+        {# — Кнопки действия — #}
+        <div class="d-flex mt-4 w-100">
+          <a href="{% url 'catalog:product_list' %}"
+             class="btn btn-outline-secondary me-auto">
+            Вернуться к покупкам
+          </a>
+          <button type="submit"
+                  class="btn btn-success mx-auto">
+            Подтвердить заказ
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div><!-- /.card -->
+
+</div><!-- /.container -->
+
+{% endblock %}

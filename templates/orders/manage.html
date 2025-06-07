@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+  <h1>Управление заказами</h1>
+
+  <table class="table table-sm align-middle">
+    <thead>
+      <tr>
+        <th>ID</th><th>Клиент</th><th>Создан</th>
+        <th>Доставка</th><th>Статус</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for order in orders %}
+      <tr>
+        <td>{{ order.id }}</td>
+        <td>{{ order.user.username }}</td>
+        <td>{{ order.created_at|date:"d.m H:i" }}</td>
+        <td>{{ order.delivery_date }} {{ order.delivery_time }}</td>
+        <td>{{ order.get_status_display }}</td>
+        <td class="text-nowrap">
+          <!-- Кнопки смены статуса -->
+          <a href="{% url 'orders:set_order_status' order.id 'PROCESSING' %}"
+             class="btn btn-outline-warning btn-sm{% if order.status == 'PROCESSING' %} active{% endif %}">
+            В работе
+          </a>
+          <a href="{% url 'orders:set_order_status' order.id 'DELIVERING' %}"
+             class="btn btn-outline-primary btn-sm{% if order.status == 'DELIVERING' %} active{% endif %}">
+            В доставке
+          </a>
+          <a href="{% url 'orders:set_order_status' order.id 'COMPLETED' %}"
+             class="btn btn-outline-success btn-sm{% if order.status == 'COMPLETED' %} active{% endif %}">
+            Выполнен
+          </a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+<h2>Спасибо за заказ №{{ order.id }}</h2>
+<p>Мы доставим букет <strong>{{ order.delivery_date }} {{ order.delivery_time }}</strong>
+по адресу: {{ order.delivery_address }}.</p>
+
+<table border="1" cellspacing="0" cellpadding="6">
+  <tr><th>Букет</th><th>Кол-во</th><th>Цена</th></tr>
+  {% for item in items %}
+  <tr>
+    <td>{{ item.product.name }}</td>
+    <td align="center">{{ item.quantity }}</td>
+    <td align="right">{{ item.price }} ₽</td>
+  </tr>
+  {% endfor %}
+  <tr>
+    <td colspan="2" align="right"><strong>Итого:</strong></td>
+    <td align="right"><strong>{{ total }} ₽</strong></td>
+  </tr>
+</table>
+<p>Если возникнут вопросы, ответьте на это письмо.</p>
